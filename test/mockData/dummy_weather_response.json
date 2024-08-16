@@ -1,0 +1,18 @@
+{
+  "main": {
+    "temp": 20,
+    "temp_min": 15,
+    "temp_max": 25,
+    "pressure": 1012,
+    "humidity": 72
+  },
+  "weather": [
+    {
+      "id": 800,
+      "main": "Clear",
+      "description": "clear sky",
+      "icon": "01d"
+    }
+  ],
+  "name": "London"
+}

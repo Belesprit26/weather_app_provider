@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
-import 'package:untitled/src/api/api_keys.dart';
+import 'package:untitled/src/api/api_keys.dart'; // Assuming setupInjection() registers the API key
 import 'package:untitled/src/features/weather/application/providers.dart';
-import 'src/features/weather/presentation/weather_page.dart';
+import 'package:untitled/src/features/weather/data/weather_repository.dart'; // Import WeatherRepository
 
+import 'src/features/weather/presentation/weather_page.dart';
 
 void main() {
   setupInjection(); // Initialize get_it with API keys
@@ -22,9 +24,15 @@ class MyApp extends StatelessWidget {
       )
     ]);
 
+    // Get the API key from GetIt
+    final apiKey = GetIt.instance<String>();
+
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => WeatherProvider()),
+        ChangeNotifierProvider(
+          create: (_) => WeatherProvider(WeatherRepository(
+              apiKey)), // Provide the API key to the WeatherRepository
+        ),
       ],
       child: MaterialApp(
         title: 'Flutter Weather App',

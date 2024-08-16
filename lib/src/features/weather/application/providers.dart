@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../data/api_exception.dart';
 import '../data/weather_repository.dart';
 
 class WeatherProvider with ChangeNotifier {
-  final WeatherRepository _weatherRepository = WeatherRepository();
+  final WeatherRepository _weatherRepository;
   String _units = "metric"; // Default to metric
   bool _isLoading = false; // Loading state
 
@@ -13,13 +14,17 @@ class WeatherProvider with ChangeNotifier {
   String _city = "London"; // Initial city value
 
   Map<String, dynamic>? get weatherData => _weatherData;
+
   Map<String, dynamic>? get forecastData => _forecastData;
+
   String? get errorMessage => _errorMessage;
+
   String get units => _units;
+
   bool get isLoading => _isLoading; // Getter for loading state
   String get city => _city; // Getter for the current city
 
-  WeatherProvider() {
+  WeatherProvider(this._weatherRepository) {
     // Fetch weather data for the initial city when the provider is first created
     fetchWeather(_city);
   }
@@ -39,7 +44,8 @@ class WeatherProvider with ChangeNotifier {
       setLoading(true); // Set loading state to true
       _city = city; // Update the current city
       _weatherData = await _weatherRepository.fetchCurrentWeather(city, _units);
-      _forecastData = await _weatherRepository.fetchWeatherForecast(city, _units);
+      _forecastData =
+          await _weatherRepository.fetchWeatherForecast(city, _units);
       _errorMessage = null;
     } catch (e) {
       if (e is InvalidApiKeyException) {

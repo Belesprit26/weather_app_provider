@@ -1,5 +1,4 @@
 import 'package:get_it/get_it.dart';
-import 'api_keys.dart'; // Import the file containing your API key
 
 final GetIt getIt = GetIt.instance;
 
