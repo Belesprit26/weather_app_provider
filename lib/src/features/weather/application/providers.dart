@@ -9,7 +9,7 @@ class WeatherProvider with ChangeNotifier {
   bool _isLoading = false; // Loading state
 
   Map<String, dynamic>? _weatherData;
-  Map<String, dynamic>? _forecastData;
+  Map<String, dynamic>? _forecastData; // 3-hour forecast data
   String? _errorMessage;
   String _city = "London"; // Initial city value
 
@@ -32,6 +32,7 @@ class WeatherProvider with ChangeNotifier {
   void toggleUnits() {
     _units = _units == "metric" ? "imperial" : "metric";
     notifyListeners();
+    fetchWeather(_city); // Reload weather data with the new units
   }
 
   void setLoading(bool value) {

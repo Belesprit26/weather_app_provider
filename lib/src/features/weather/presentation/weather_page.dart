@@ -10,27 +10,30 @@ import 'current_weather.dart';
 import 'metric_toggle.dart';
 import 'weather_icon_image.dart';
 
-String getDayWithSuffix(int day) {
-  if (day >= 11 && day <= 13) {
-    return '${day}th';
-  }
-  switch (day % 10) {
-    case 1:
-      return '${day}st';
-    case 2:
-      return '${day}nd';
-    case 3:
-      return '${day}rd';
-    default:
-      return '${day}th';
-  }
-}
-
 class WeatherPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final connectivityProvider = Provider.of<ConnectivityProvider>(context);
     final weatherProvider = Provider.of<WeatherProvider>(context);
+
+    // Group forecasts by day and get the forecast at midday
+    Map<String, Map<String, dynamic>> groupedForecasts = {};
+
+    if (weatherProvider.forecastData != null) {
+      for (var forecast in weatherProvider.forecastData!['list']) {
+        DateTime dateTime = DateTime.parse(forecast['dt_txt']);
+        String dayKey = DateFormat('yyyy-MM-dd').format(dateTime);
+
+        // Identify forecasts closest to midday (12:00 PM)
+        if (dateTime.hour == 12) {
+          groupedForecasts[dayKey] = {
+            'day': DateFormat('EEE').format(dateTime),
+            'icon': forecast['weather'][0]['icon'],
+            'temp': forecast['main']['temp'],
+          };
+        }
+      }
+    }
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -51,57 +54,50 @@ class WeatherPage extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   const CitySearchBox(),
-                  Spacer(),
+                  const Spacer(),
                   if (weatherProvider.weatherData != null) ...[
                     const CurrentWeather(),
-                    Spacer(),
+                    const Spacer(),
                     // Forecast section
-                    Text('Weather Forecast:',
-                        style: TextStyle(fontSize: 20, color: Colors.white60)),
-                    SizedBox(height: 10),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(18.0)),
-                        border: Border.all(color: Colors.black26),
-                      ),
-                      height: 390,
-                      child: ListView.builder(
-                        itemCount: weatherProvider.forecastData!['list'].length,
-                        itemBuilder: (context, index) {
-                          var forecast =
-                              weatherProvider.forecastData!['list'][index];
+                    Text(
+                      'Weather Midday Forecast:',
+                      style: TextStyle(fontSize: 20, color: Colors.white60),
+                    ),
+                    const SizedBox(height: 60),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: List.generate(
+                        groupedForecasts.keys.length,
+                        (index) {
+                          String dayKey =
+                              groupedForecasts.keys.elementAt(index);
+                          var dayData = groupedForecasts[dayKey]!;
+                          String dayOfWeek = dayData['day'];
+                          String iconUrl =
+                              'https://openweathermap.org/img/wn/${dayData['icon']}@2x.png';
+                          double middayTemp = dayData['temp'];
 
-                          DateTime dateTime =
-                              DateTime.parse(forecast['dt_txt']);
-                          String dayOfWeek =
-                              DateFormat('EEEE').format(dateTime);
-                          String dayWithSuffix = getDayWithSuffix(dateTime.day);
-                          String formattedTime = DateFormat('h:mma')
-                              .format(dateTime)
-                              .toLowerCase();
-
-                          return ListTile(
-                            leading: WeatherIconImage(
-                              iconUrl:
-                                  'https://openweathermap.org/img/wn/${forecast['weather'][0]['icon']}@2x.png',
-                              size: 60,
-                            ),
-                            title: Text(
-                              '$dayOfWeek $dayWithSuffix',
-                              style: TextStyle(color: Colors.white),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              '$formattedTime',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            trailing: Text(
-                              '${forecast['main']['temp']}°${weatherProvider.units == "metric" ? "C" : "F"}',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 25),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                          return Expanded(
+                            child: Column(
+                              children: [
+                                Text(
+                                  dayOfWeek,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                const SizedBox(height: 5),
+                                WeatherIconImage(
+                                  iconUrl: iconUrl,
+                                  size: 40,
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  '${middayTemp.toStringAsFixed(0)}°',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },
@@ -110,16 +106,18 @@ class WeatherPage extends StatelessWidget {
                   ] else if (weatherProvider.errorMessage != null) ...[
                     Text(
                       'Error: ${weatherProvider.errorMessage}',
-                      style: TextStyle(color: Colors.white, fontSize: 15),
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
                     ),
                   ] else if (weatherProvider.weatherData == null &&
                       weatherProvider.forecastData == null) ...[
-                    Text('Search for a city',
-                        style: TextStyle(color: Colors.white, fontSize: 20)),
+                    const Text(
+                      'Search for a city',
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
                   ] else ...[
-                    CircularProgressIndicator(),
+                    const CircularProgressIndicator(),
                   ],
-                  Spacer(),
+                  const Spacer(),
                   const MetricToggle(),
                 ],
               ),
@@ -129,7 +127,7 @@ class WeatherPage extends StatelessWidget {
             Container(
               color: Colors.black54,
               alignment: Alignment.center,
-              child: Text(
+              child: const Text(
                 "No internet connection!",
                 style: TextStyle(
                   color: Colors.white,
@@ -141,7 +139,7 @@ class WeatherPage extends StatelessWidget {
           if (weatherProvider.isLoading)
             Container(
               color: Colors.black45,
-              child: Center(
+              child: const Center(
                 child: CircularProgressIndicator(
                   color: AppColors.accentColor,
                 ),

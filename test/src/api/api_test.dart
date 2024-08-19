@@ -33,7 +33,7 @@ void main() {
     final weatherUrl =
         'https://api.openweathermap.org/data/2.5/weather?q=$cityName&appid=dummy_api_key&units=$units';
     final forecastUrl =
-        'https://api.openweathermap.org/data/2.5/forecast?q=$cityName&cnt=30&appid=dummy_api_key&units=$units';
+        'https://api.openweathermap.org/data/2.5/forecast?q=$cityName&appid=dummy_api_key&units=$units';
 
     test('fetches current weather data successfully', () async {
       // Arrange
@@ -47,7 +47,7 @@ void main() {
       final result = await weatherAPI.getWeatherByCity(cityName, units);
 
       // Assert
-      expect(result['main']['temp'], 20);
+      expect(result['main']['temp'], mockWeatherData['main']['temp']);
       verify(mockHttpClient.get(Uri.parse(weatherUrl))).called(1);
     });
 
@@ -63,7 +63,8 @@ void main() {
       final result = await weatherAPI.getForecastByCity(cityName, units);
 
       // Assert
-      expect(result['list'][0]['main']['temp'], 20);
+      expect(result['list'][0]['main']['temp'],
+          mockForecastData['list'][0]['main']['temp']);
       verify(mockHttpClient.get(Uri.parse(forecastUrl))).called(1);
     });
 
