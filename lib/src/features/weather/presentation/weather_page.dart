@@ -3,13 +3,13 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../constants/app_colors.dart';
+import '../application/connectivity_provider.dart';
 import '../application/providers.dart';
 import 'city_search_box.dart';
-import 'current_weather.dart'; // Import the CurrentWeather widget
+import 'current_weather.dart';
 import 'metric_toggle.dart';
 import 'weather_icon_image.dart';
 
-// Utility function to add suffix to the day
 String getDayWithSuffix(int day) {
   if (day >= 11 && day <= 13) {
     return '${day}th';
@@ -29,6 +29,7 @@ String getDayWithSuffix(int day) {
 class WeatherPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final connectivityProvider = Provider.of<ConnectivityProvider>(context);
     final weatherProvider = Provider.of<WeatherProvider>(context);
 
     return Scaffold(
@@ -52,7 +53,7 @@ class WeatherPage extends StatelessWidget {
                   const CitySearchBox(),
                   Spacer(),
                   if (weatherProvider.weatherData != null) ...[
-                    const CurrentWeather(), // Use the new CurrentWeather widget
+                    const CurrentWeather(),
                     Spacer(),
                     // Forecast section
                     Text('Weather Forecast:',
@@ -63,33 +64,30 @@ class WeatherPage extends StatelessWidget {
                         borderRadius: BorderRadius.all(Radius.circular(18.0)),
                         border: Border.all(color: Colors.black26),
                       ),
-                      height: 390, // Adjust height as needed
+                      height: 390,
                       child: ListView.builder(
                         itemCount: weatherProvider.forecastData!['list'].length,
                         itemBuilder: (context, index) {
                           var forecast =
                               weatherProvider.forecastData!['list'][index];
 
-                          // Parse the date and format it
                           DateTime dateTime =
                               DateTime.parse(forecast['dt_txt']);
-                          String dayOfWeek = DateFormat('EEEE')
-                              .format(dateTime); // e.g., Friday
-                          String dayWithSuffix =
-                              getDayWithSuffix(dateTime.day); // e.g., 16th
+                          String dayOfWeek =
+                              DateFormat('EEEE').format(dateTime);
+                          String dayWithSuffix = getDayWithSuffix(dateTime.day);
                           String formattedTime = DateFormat('h:mma')
                               .format(dateTime)
-                              .toLowerCase(); // e.g., 3pm
+                              .toLowerCase();
 
                           return ListTile(
                             leading: WeatherIconImage(
                               iconUrl:
                                   'https://openweathermap.org/img/wn/${forecast['weather'][0]['icon']}@2x.png',
-                              size: 60, // Set the size as needed
+                              size: 60,
                             ),
                             title: Text(
                               '$dayOfWeek $dayWithSuffix',
-                              // Display day of the week, date with suffix, and time
                               style: TextStyle(color: Colors.white),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -127,10 +125,22 @@ class WeatherPage extends StatelessWidget {
               ),
             ),
           ),
-          if (weatherProvider
-              .isLoading) // Overlay the CircularProgressIndicator
+          if (!connectivityProvider.hasConnection)
             Container(
-              color: Colors.black45, // Slightly darken the background
+              color: Colors.black54,
+              alignment: Alignment.center,
+              child: Text(
+                "No internet connection!",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          if (weatherProvider.isLoading)
+            Container(
+              color: Colors.black45,
               child: Center(
                 child: CircularProgressIndicator(
                   color: AppColors.accentColor,

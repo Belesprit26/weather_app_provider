@@ -5,10 +5,11 @@ import 'package:untitled/src/api/api_keys.dart'; // Assuming setupInjection() re
 import 'package:untitled/src/features/weather/application/providers.dart';
 import 'package:untitled/src/features/weather/data/weather_repository.dart'; // Import WeatherRepository
 
+import 'src/features/weather/application/connectivity_provider.dart';
 import 'src/features/weather/presentation/weather_page.dart';
 
 void main() {
-  setupInjection(); // Initialize get_it with API keys
+  setupInjection();
   runApp(MyApp());
 }
 
@@ -24,14 +25,15 @@ class MyApp extends StatelessWidget {
       )
     ]);
 
-    // Get the API key from GetIt
     final apiKey = GetIt.instance<String>();
 
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => WeatherProvider(WeatherRepository(
-              apiKey)), // Provide the API key to the WeatherRepository
+          create: (_) => WeatherProvider(WeatherRepository(apiKey)),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ConnectivityProvider(), // Add the ConnectivityProvider
         ),
       ],
       child: MaterialApp(
